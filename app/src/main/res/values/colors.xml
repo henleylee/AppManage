@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#3F51B5</color>
+    <color name="colorPrimaryDark">#303F9F</color>
+    <color name="colorAccent">#FF4081</color>
+
+    <!-- Button正常状态下的背景颜色 -->
+    <color name="button_normal">#f35638</color>
+    <!-- Button按下状态下的背景颜色 -->
+    <color name="button_pressed">#dd4c31</color>
+
+</resources>

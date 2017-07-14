@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@android:color/white"
+    android:orientation="horizontal">
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <ImageView
+            android:id="@+id/appinfo_applogo"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_margin="10dp"
+            android:adjustViewBounds="true"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_launcher" />
+
+        <TextView
+            android:id="@+id/appinfo_action_copy"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="5dp"
+            android:background="@drawable/selector_action_copy"
+            android:gravity="center"
+            android:padding="5dp"
+            android:text="一键复制"
+            android:textColor="#ffffff" />
+    </LinearLayout>
+
+    <android.support.v4.widget.Space
+        android:layout_width="10dp"
+        android:layout_height="match_parent" />
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp">
+
+        <TextView
+            android:id="@+id/appinfo_appname"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:text="APP名称"
+            android:textColor="#191919"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/appinfo_appversion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:text="APP版本"
+            android:textColor="#191919"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/appinfo_appsize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:text="APP大小"
+            android:textColor="#191919"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/appinfo_packagename"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:text="APP包名"
+            android:textColor="#191919"
+            android:textSize="13sp" />
+
+        <TextView
+            android:id="@+id/appinfo_signatures"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_vertical"
+            android:text="APP签名"
+            android:textColor="#191919"
+            android:textSize="13sp" />
+    </LinearLayout>
+</LinearLayout>
