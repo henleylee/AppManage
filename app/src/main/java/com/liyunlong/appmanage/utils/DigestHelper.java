@@ -14,7 +14,11 @@ import java.security.NoSuchAlgorithmException;
  * @author liyunlong
  * @date 2016/6/3 13:33
  */
-public class DigestUtils {
+public class DigestHelper {
+
+    private DigestHelper() {
+        throw new UnsupportedOperationException("Instantiation operation is not supported.");
+    }
 
     /**
      * 根据给定摘要算法创建一个消息摘要实例
@@ -89,11 +93,13 @@ public class DigestUtils {
      * @return 消息摘要（长度为32的十六进制字符串）
      */
     public static String encodeMD5(File file) throws IOException {
-        FileInputStream in = new FileInputStream(file);
-        FileChannel ch = in.getChannel();
-        MappedByteBuffer byteBuffer = ch.map(FileChannel.MapMode.READ_ONLY, 0, file.length());
-        getMd5Digest().update(byteBuffer);
-        return byte2Hex(getMd5Digest().digest());
+        FileInputStream fis = new FileInputStream(file);
+        FileChannel fc = fis.getChannel();
+        MappedByteBuffer byteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0, file.length());
+        MessageDigest md5Digest = getMd5Digest();
+        md5Digest.update(byteBuffer);
+        CloseHelper.closeIOQuietly(fc, fis);
+        return byte2Hex(md5Digest.digest());
     }
 
     /**
@@ -198,9 +204,6 @@ public class DigestUtils {
 
     /**
      * 将byte数组转换成16进制
-     *
-     * @param buf
-     * @return
      */
     private static String byte2Hex(byte buf[]) {
         StringBuffer sb = new StringBuffer();
@@ -209,7 +212,7 @@ public class DigestUtils {
             if (hex.length() == 1) {
                 hex = '0' + hex;
             }
-            sb.append(hex.toUpperCase());
+            sb.append(hex);
         }
         return sb.toString();
     }

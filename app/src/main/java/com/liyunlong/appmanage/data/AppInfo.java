@@ -12,17 +12,18 @@ public class AppInfo {
 
     private Drawable appIcon;
     private String appLabel;
-    private String cacheSize;
-    private String codeSize;
-    private String dataSize;
-    private String totalSize;
-    private long totalSizeBytes;
+    private long cacheSize;
+    private long codeSize;
+    private long dataSize;
+    private long totalSize;
     private boolean isSystemApp;
     private String location;
     private int versionCode;
     private String versionName;
     private String packageName;
-    private String sigmd5;
+    private String signatureMD5;
+    private String signatureSHA1;
+    private String signatureSHA256;
 
     public Drawable getAppIcon() {
         return appIcon;
@@ -40,44 +41,40 @@ public class AppInfo {
         this.appLabel = appLabel;
     }
 
-    public String getCacheSize() {
+    public long getCacheSize() {
         return cacheSize;
     }
 
-    public void setCacheSize(String cacheSize) {
+    public void setCacheSize(long cacheSize) {
         this.cacheSize = cacheSize;
     }
 
-    public String getCodeSize() {
+    public long getCodeSize() {
         return codeSize;
     }
 
-    public void setCodeSize(String codeSize) {
+    public void setCodeSize(long codeSize) {
         this.codeSize = codeSize;
     }
 
-    public String getDataSize() {
+    public long getDataSize() {
         return dataSize;
     }
 
-    public void setDataSize(String dataSize) {
+    public void setDataSize(long dataSize) {
         this.dataSize = dataSize;
     }
 
-    public String getTotalSize() {
+    public long getTotalSize() {
         return totalSize;
     }
 
-    public void setTotalSize(String totalSize) {
+    public void setTotalSize(long totalSize) {
         this.totalSize = totalSize;
     }
 
-    public long getTotalSizeBytes() {
-        return totalSizeBytes;
-    }
-
-    public void setTotalSizeBytes(long totalSizeBytes) {
-        this.totalSizeBytes = totalSizeBytes;
+    public void setSystemApp(boolean isSystemApp) {
+        this.isSystemApp = isSystemApp;
     }
 
     public Boolean isSystemApp() {
@@ -120,12 +117,28 @@ public class AppInfo {
         this.packageName = packageName;
     }
 
-    public String getSigmd5() {
-        return sigmd5;
+    public String getSignatureMD5() {
+        return signatureMD5;
     }
 
-    public void setSigmd5(String sigmd5) {
-        this.sigmd5 = sigmd5;
+    public void setSignatureMD5(String signatureMD5) {
+        this.signatureMD5 = signatureMD5;
+    }
+
+    public String getSignatureSHA1() {
+        return signatureSHA1;
+    }
+
+    public void setSignatureSHA1(String signatureSHA1) {
+        this.signatureSHA1 = signatureSHA1;
+    }
+
+    public String getSignatureSHA256() {
+        return signatureSHA256;
+    }
+
+    public void setSignatureSHA256(String signatureSHA256) {
+        this.signatureSHA256 = signatureSHA256;
     }
 
 }

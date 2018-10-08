@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:background="@android:color/white"
@@ -40,17 +41,18 @@
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        android:paddingBottom="5dp"
-        android:paddingTop="5dp">
+        android:paddingTop="5dp"
+        android:paddingBottom="5dp">
 
         <TextView
             android:id="@+id/appinfo_appname"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
-            android:text="APP名称"
+            android:singleLine="true"
             android:textColor="#191919"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            tools:text="APP名称" />
 
         <TextView
             android:id="@+id/appinfo_appversion"
@@ -58,9 +60,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
-            android:text="APP版本"
+            android:singleLine="true"
             android:textColor="#191919"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            tools:text="APP版本" />
 
         <TextView
             android:id="@+id/appinfo_appsize"
@@ -68,9 +71,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
-            android:text="APP大小"
             android:textColor="#191919"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            tools:text="APP大小" />
 
         <TextView
             android:id="@+id/appinfo_packagename"
@@ -78,9 +81,10 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
-            android:text="APP包名"
+            android:singleLine="true"
             android:textColor="#191919"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            tools:text="APP包名" />
 
         <TextView
             android:id="@+id/appinfo_signatures"
@@ -88,8 +92,9 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
             android:gravity="center_vertical"
-            android:text="APP签名"
+            android:singleLine="true"
             android:textColor="#191919"
-            android:textSize="13sp" />
+            android:textSize="13sp"
+            tools:text="APP签名" />
     </LinearLayout>
 </LinearLayout>

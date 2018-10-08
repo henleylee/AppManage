@@ -9,7 +9,6 @@ import android.content.pm.PackageStats;
 import android.os.Process;
 import android.os.RemoteException;
 import android.support.annotation.NonNull;
-import android.text.format.Formatter;
 
 import com.liyunlong.appmanage.data.AppInfo;
 import com.liyunlong.appmanage.data.AppManageInfo;
@@ -97,7 +96,10 @@ public class AppManageHelper {
         appInfo.setVersionName(packageInfo.versionName);
         appInfo.setIsSystemApp(isSystemApp(applicationInfo));
         if (packageInfo.signatures.length > 0) {
-            appInfo.setSigmd5(MD5Helper.getMessageDigest(packageInfo.signatures[0].toByteArray()));
+            byte[] signBytes = packageInfo.signatures[0].toByteArray();
+            appInfo.setSignatureMD5(DigestHelper.encodeMD5Hex(signBytes));
+            appInfo.setSignatureSHA1(DigestHelper.encodeSHAHex(signBytes));
+            appInfo.setSignatureSHA256(DigestHelper.encodeSHA256Hex(signBytes));
         }
         queryPacakgeSize(appInfo.getPackageName(), new PackageStatsObserver(appInfo));
         return appInfo;
@@ -128,10 +130,6 @@ public class AppManageHelper {
         return ((applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);
     }
 
-    private String formateFileSize(long sizeBytes) {
-        return Formatter.formatFileSize(context, sizeBytes);
-    }
-
     private class PackageStatsObserver extends IPackageStatsObserver.Stub {
 
         private AppInfo appInfo;
@@ -144,14 +142,13 @@ public class AppManageHelper {
         public void onGetStatsCompleted(PackageStats packageStats, boolean succeeded) throws RemoteException {
             if (appInfo != null) {
                 readyCount++;
-                appInfo.setCodeSize(formateFileSize(packageStats.codeSize + packageStats.externalCodeSize)); // 应用程序大小
-                appInfo.setDataSize(formateFileSize(packageStats.dataSize + packageStats.externalDataSize)); // 数据大小
-                appInfo.setCacheSize(formateFileSize(packageStats.cacheSize + packageStats.externalCacheSize)); // 缓存大小
+                appInfo.setCodeSize(packageStats.codeSize + packageStats.externalCodeSize); // 应用程序大小
+                appInfo.setDataSize(packageStats.dataSize + packageStats.externalDataSize); // 数据大小
+                appInfo.setCacheSize(packageStats.cacheSize + packageStats.externalCacheSize); // 缓存大小
                 long totalSizeBytes = packageStats.codeSize + packageStats.externalCodeSize
                         + packageStats.dataSize + packageStats.externalDataSize
                         + packageStats.cacheSize + packageStats.externalCacheSize;
-                appInfo.setTotalSizeBytes(totalSizeBytes);
-                appInfo.setTotalSize(formateFileSize(totalSizeBytes)); // 总大小
+                appInfo.setTotalSize(totalSizeBytes); // 总大小
                 if (readyCount == totalCount && mListener != null) {
                     mListener.onAppInfoReady();
                 }

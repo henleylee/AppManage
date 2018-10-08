@@ -108,7 +108,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
         layoutParams.topMargin = statusBarHeight;
         searchView.setLayoutParams(layoutParams);
         searchView.setVisibility(View.INVISIBLE);
-        edtSeatch = (EditText) searchView.findViewById(R.id.search_edt);
+        edtSeatch = searchView.findViewById(R.id.search_edt);
         final View ivClean = searchView.findViewById(R.id.search_clean);
         ivClean.setVisibility(View.GONE);
         ivClean.setOnClickListener(this);
@@ -136,7 +136,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
                 }
             }
         });
-        listSearch = (ListView) searchView.findViewById(R.id.search_listview);
+        listSearch = searchView.findViewById(R.id.search_listview);
     }
 
 
@@ -163,6 +163,12 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
             @Override
             public void run() {
                 appManageInfo = appManageHelper.getAppManageInfo();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        updateAppManageInfo();
+                    }
+                });
             }
         });
     }
@@ -227,6 +233,8 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
                     case 3:
                         fragment.sortBySize(true); // 按大小排序(降序)
                         break;
+                    default:
+                        break;
                 }
             }
         }
@@ -237,7 +245,11 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                updateAppManageInfo();
+                if (fragments != null && !fragments.isEmpty()) {
+                    for (AppInfoFragment fragment : fragments) {
+                        fragment.notifyDataSetChanged();
+                    }
+                }
             }
         });
     }
@@ -316,6 +328,8 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
                 case 3:
                     Collections.sort(resultList, new ComparatorBySize(true)); // 按大小排序(降序)
                     break;
+                default:
+                    break;
             }
             updateSearchAppInfo(resultList);
         }
@@ -342,6 +356,8 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
                     edtSeatch.setText("");
                 }
                 updateSearchAppInfo(null);
+                break;
+            default:
                 break;
         }
     }

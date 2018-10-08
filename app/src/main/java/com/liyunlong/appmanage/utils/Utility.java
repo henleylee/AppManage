@@ -1,5 +1,7 @@
 package com.liyunlong.appmanage.utils;
 
+import android.content.ClipData;
+import android.content.ClipboardManager;
 import android.content.Context;
 
 /**
@@ -7,6 +9,18 @@ import android.content.Context;
  * @date 2017/4/18 18:41
  */
 public class Utility {
+
+    /**
+     * 将文字复制到剪切板
+     */
+    public static boolean copy(Context context, CharSequence text) {
+        ClipboardManager clipboard = (ClipboardManager) context.getSystemService(Context.CLIPBOARD_SERVICE);
+        if (clipboard != null) {
+            clipboard.setPrimaryClip(ClipData.newPlainText(null, text));
+            return true;
+        }
+        return false;
+    }
 
     public static int dip2px(Context context, double dpValue) {
         float density = context.getResources().getDisplayMetrics().density;

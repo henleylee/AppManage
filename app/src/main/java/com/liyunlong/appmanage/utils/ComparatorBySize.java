@@ -20,12 +20,12 @@ public class ComparatorBySize implements Comparator<AppInfo> {
 
     @Override
     public int compare(AppInfo o1, AppInfo o2) {
-        long totalSizeBytes1 = o1.getTotalSizeBytes();
-        long totalSizeBytes2 = o2.getTotalSizeBytes();
+        long totalSize1 = o1.getTotalSize();
+        long totalSize2 = o2.getTotalSize();
         int result;
-        if (totalSizeBytes1 < totalSizeBytes2) {
+        if (totalSize1 < totalSize2) {
             result = -1;
-        } else if (totalSizeBytes1 > totalSizeBytes2) {
+        } else if (totalSize1 > totalSize2) {
             result = 1;
         } else {
             result = 0;

@@ -56,6 +56,12 @@ public class AppInfoFragment extends Fragment {
         }
     }
 
+    public void notifyDataSetChanged(){
+        if (mAdapter != null) {
+            mAdapter.notifyDataSetChanged();
+        }
+    }
+
     /**
      * 按名称排序
      *

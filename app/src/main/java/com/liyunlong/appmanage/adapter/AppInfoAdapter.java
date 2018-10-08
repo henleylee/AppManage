@@ -1,8 +1,8 @@
 package com.liyunlong.appmanage.adapter;
 
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.text.TextUtils;
+import android.text.format.Formatter;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,11 +13,14 @@ import android.widget.Toast;
 
 import com.liyunlong.appmanage.R;
 import com.liyunlong.appmanage.data.AppInfo;
+import com.liyunlong.appmanage.utils.Utility;
 
 import java.util.List;
 import java.util.Locale;
 
 /**
+ * App信息列表适配器
+ *
  * @author liyunlong
  * @date 2017/4/17 17:12
  */
@@ -25,7 +28,6 @@ public class AppInfoAdapter extends BaseAdapter {
 
     private List<AppInfo> mList;
     private Context mContext;
-    private boolean needRefresh;
 
     public AppInfoAdapter(List<AppInfo> list) {
         this.mList = list;
@@ -33,10 +35,6 @@ public class AppInfoAdapter extends BaseAdapter {
 
     public List<AppInfo> getData() {
         return mList;
-    }
-
-    public void setmList(List<AppInfo> mList) {
-        this.mList = mList;
     }
 
     public void refresh(List<AppInfo> list) {
@@ -71,32 +69,52 @@ public class AppInfoAdapter extends BaseAdapter {
         } else {
             holder = (AppInfoViewHolder) convertView.getTag();
         }
-                final AppInfo appInfo = getItem(position);
+        final AppInfo appInfo = getItem(position);
         if (appInfo != null) {
             String versionName = appInfo.getVersionName();
             if (!TextUtils.isEmpty(versionName) && versionName.contains("-")) {
-                versionName = versionName.substring(0, versionName.indexOf("-"));
+                appInfo.setVersionName(versionName.substring(0, versionName.indexOf("-")));
             }
             final String appLable = appInfo.getAppLabel();
-            final String appVersion = formatString("版本: %s(版本号: %d)", versionName, appInfo.getVersionCode());
-            final String appSize = formatString("存储总计: %s\n应用: %s；数据: %s；缓存: %s", appInfo.getTotalSize(), appInfo.getCodeSize(), appInfo.getDataSize(), appInfo.getCacheSize());
+            final String appVersion = formatString("版本: %s(版本号: %d)", appInfo.getVersionName(), appInfo.getVersionCode());
+            final String appSize = computeStorageSpace(appInfo);
             final String pkgName = formatString("包名: %s", appInfo.getPackageName());
-            final String signatures = formatString("签名: %s", appInfo.getSigmd5());
+            final String signatures = formatString("签名: %s", appInfo.getSignatureMD5());
             holder.appIcon.setImageDrawable(appInfo.getAppIcon());
             holder.appLable.setText(appLable);
             holder.appVersion.setText(appVersion);
             holder.appSize.setText(appSize);
+            holder.appSize.setVisibility(TextUtils.isEmpty(appSize) ? View.GONE : View.VISIBLE);
             holder.pkgName.setText(pkgName);
             holder.signatures.setText(signatures);
             holder.actionCopy.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ((ClipboardManager) mContext.getSystemService(Context.CLIPBOARD_SERVICE)).setText("应用程序：" + appLable + "\n" + appVersion + "\n" + pkgName + "\n" + signatures);
-                    Toast.makeText(mContext, "应用信息复制成功", Toast.LENGTH_SHORT).show();
+                    String text = formatString("应用名称：%s", appLable) + "\n"
+                            + formatString("版本: %s(版本号: %d)", appInfo.getVersionName(), appInfo.getVersionCode()) + "\n"
+                            + formatString("包名: %s", appInfo.getPackageName()) + "\n"
+                            + formatString("MD5签名: %s", appInfo.getSignatureMD5()) + "\n"
+                            + formatString("SHA-1签名: %s", appInfo.getSignatureSHA1()) + "\n"
+                            + formatString("SHA-256签名: %s", appInfo.getSignatureSHA256());
+                    if (Utility.copy(mContext, text)) {
+                        Toast.makeText(mContext, "应用信息复制成功", Toast.LENGTH_SHORT).show();
+                    }
                 }
             });
         }
         return convertView;
+    }
+
+    private String computeStorageSpace(AppInfo appInfo) {
+        if (appInfo.getTotalSize() > 0) {
+            return formatString("存储总计: %s\n应用: %s；数据: %s；缓存: %s", formateSize(appInfo.getTotalSize()), formateSize(appInfo.getCodeSize()), formateSize(appInfo.getDataSize()), formateSize(appInfo.getCacheSize()));
+        } else {
+            return null;
+        }
+    }
+
+    private String formateSize(long sizeBytes) {
+        return Formatter.formatFileSize(mContext, sizeBytes);
     }
 
     private String formatString(String format, Object... args) {
@@ -114,13 +132,14 @@ public class AppInfoAdapter extends BaseAdapter {
         private final TextView signatures;
 
         AppInfoViewHolder(View itemView) {
-            appIcon = (ImageView) itemView.findViewById(R.id.appinfo_applogo);
-            actionCopy = (TextView) itemView.findViewById(R.id.appinfo_action_copy);
-            appLable = (TextView) itemView.findViewById(R.id.appinfo_appname);
-            appVersion = (TextView) itemView.findViewById(R.id.appinfo_appversion);
-            appSize = (TextView) itemView.findViewById(R.id.appinfo_appsize);
-            pkgName = (TextView) itemView.findViewById(R.id.appinfo_packagename);
-            signatures = (TextView) itemView.findViewById(R.id.appinfo_signatures);
+            appIcon = itemView.findViewById(R.id.appinfo_applogo);
+            actionCopy = itemView.findViewById(R.id.appinfo_action_copy);
+            appLable = itemView.findViewById(R.id.appinfo_appname);
+            appVersion = itemView.findViewById(R.id.appinfo_appversion);
+            appSize = itemView.findViewById(R.id.appinfo_appsize);
+            pkgName = itemView.findViewById(R.id.appinfo_packagename);
+            signatures = itemView.findViewById(R.id.appinfo_signatures);
         }
     }
+
 }
