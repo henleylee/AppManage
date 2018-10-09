@@ -1,8 +1,11 @@
 package com.liyunlong.appmanage.adapter;
 
 import android.content.Context;
+import android.text.Spannable;
+import android.text.SpannableString;
 import android.text.TextUtils;
 import android.text.format.Formatter;
+import android.text.style.AbsoluteSizeSpan;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -77,9 +80,9 @@ public class AppInfoAdapter extends BaseAdapter {
             }
             final String appLable = appInfo.getAppLabel();
             final String appVersion = formatString("版本: %s(版本号: %d)", appInfo.getVersionName(), appInfo.getVersionCode());
-            final String appSize = computeStorageSpace(appInfo);
             final String pkgName = formatString("包名: %s", appInfo.getPackageName());
             final String signatures = formatString("签名: %s", appInfo.getSignatureMD5());
+            final CharSequence appSize = computeStorageSpace(appInfo);
             holder.appIcon.setImageDrawable(appInfo.getAppIcon());
             holder.appLable.setText(appLable);
             holder.appVersion.setText(appVersion);
@@ -105,9 +108,16 @@ public class AppInfoAdapter extends BaseAdapter {
         return convertView;
     }
 
-    private String computeStorageSpace(AppInfo appInfo) {
+    private CharSequence computeStorageSpace(AppInfo appInfo) {
         if (appInfo.getTotalSize() > 0) {
-            return formatString("存储总计: %s\n应用: %s；数据: %s；缓存: %s", formateSize(appInfo.getTotalSize()), formateSize(appInfo.getCodeSize()), formateSize(appInfo.getDataSize()), formateSize(appInfo.getCacheSize()));
+            String totalSize = formateSize(appInfo.getTotalSize());
+            String codeSize = formateSize(appInfo.getCodeSize());
+            String dataSize = formateSize(appInfo.getDataSize());
+            String cacheSize = formateSize(appInfo.getCacheSize());
+            String appSize = formatString("存储总计: %s\n应用: %s；数据: %s；缓存: %s", totalSize, codeSize, dataSize, cacheSize);
+            Spannable spannable = new SpannableString(appSize);
+            spannable.setSpan(new AbsoluteSizeSpan(12, true), 6 + totalSize.length(), appSize.length(), Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+            return spannable;
         } else {
             return null;
         }

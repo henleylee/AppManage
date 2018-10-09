@@ -1,13 +1,17 @@
 package com.liyunlong.appmanage.utils;
 
+import android.annotation.TargetApi;
+import android.app.usage.StorageStats;
+import android.app.usage.StorageStatsManager;
 import android.content.Context;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.IPackageStatsObserver;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageStats;
-import android.os.Process;
+import android.os.Build;
 import android.os.RemoteException;
+import android.os.storage.StorageManager;
 import android.support.annotation.NonNull;
 
 import com.liyunlong.appmanage.data.AppInfo;
@@ -18,6 +22,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.security.NoSuchAlgorithmException;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * AppManage辅助类
@@ -32,6 +37,8 @@ public class AppManageHelper {
     private int readyCount = 0;
     private Context context;
     private PackageManager packageManager;
+    private StorageManager storageManager;
+    private StorageStatsManager storageStatsManager;
     private OnAppInfoReadyListener mListener;
 
     public AppManageHelper(Context context) {
@@ -86,8 +93,8 @@ public class AppManageHelper {
     @NonNull
     private AppInfo getAppInfo(PackageInfo packageInfo) throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
         totalCount++;
-        ApplicationInfo applicationInfo = packageInfo.applicationInfo;
         AppInfo appInfo = new AppInfo();
+        ApplicationInfo applicationInfo = packageInfo.applicationInfo;
         appInfo.setPackageName(applicationInfo.packageName);
         appInfo.setLocation(applicationInfo.sourceDir);
         appInfo.setAppIcon(applicationInfo.loadIcon(packageManager));
@@ -101,7 +108,11 @@ public class AppManageHelper {
             appInfo.setSignatureSHA1(DigestHelper.encodeSHAHex(signBytes));
             appInfo.setSignatureSHA256(DigestHelper.encodeSHA256Hex(signBytes));
         }
-        queryPacakgeSize(appInfo.getPackageName(), new PackageStatsObserver(appInfo));
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getAppTotalsizeO(packageInfo, appInfo);
+        } else {
+            queryPacakgeSize(appInfo.getPackageName(), new PackageStatsObserver(appInfo));
+        }
         return appInfo;
     }
 
@@ -114,8 +125,8 @@ public class AppManageHelper {
     private void queryPacakgeSize(String packageName, IPackageStatsObserver observer) {
         try {
             Method method = packageManager.getClass().getMethod(METHOD_NAME_GETPACKAGESIZEINFO,
-                    String.class, int.class, IPackageStatsObserver.class);
-            method.invoke(packageManager, packageName, Process.myUid() / 100000, observer);
+                    String.class, IPackageStatsObserver.class);
+            method.invoke(packageManager, packageName, observer);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
         } catch (InvocationTargetException e) {
@@ -123,8 +134,40 @@ public class AppManageHelper {
         } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
-
     }
+
+    /**
+     * 获取App的缓存大小、数据大小、应用程序大小
+     *
+     * @param packageInfo
+     * @param appInfo
+     */
+    @TargetApi(Build.VERSION_CODES.O)
+    private void getAppTotalsizeO(PackageInfo packageInfo, AppInfo appInfo) {
+        try {
+            if (storageManager == null) {
+                storageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
+            }
+            if (storageStatsManager == null) {
+                storageStatsManager = (StorageStatsManager) context.getSystemService(Context.STORAGE_STATS_SERVICE);
+            }
+            ApplicationInfo applicationInfo = packageInfo.applicationInfo;
+            UUID uuid = applicationInfo.storageUuid;
+            int uid = applicationInfo.uid;
+            StorageStats storageStats = storageStatsManager.queryStatsForUid(uuid, uid);
+            appInfo.setCodeSize(storageStats.getAppBytes()); // 应用程序大小
+            appInfo.setDataSize(storageStats.getDataBytes()); // 数据大小
+            appInfo.setCacheSize(storageStats.getCacheBytes()); // 缓存大小
+            long totalSizeBytes = storageStats.getAppBytes() + storageStats.getDataBytes() + storageStats.getCacheBytes();
+            appInfo.setTotalSize(totalSizeBytes); // 总大小
+            if (readyCount == totalCount && mListener != null) {
+                mListener.onAppInfoReady();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
 
     private boolean isSystemApp(ApplicationInfo applicationInfo) {
         return ((applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) != 0);

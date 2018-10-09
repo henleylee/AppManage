@@ -7,6 +7,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.FragmentActivity;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.common.design.MaterialDialog;
 import com.liyunlong.appmanage.R;
@@ -35,6 +37,7 @@ import com.liyunlong.appmanage.utils.AppManageHelper;
 import com.liyunlong.appmanage.utils.ComparatorByName;
 import com.liyunlong.appmanage.utils.ComparatorBySize;
 import com.liyunlong.appmanage.utils.NavigatorHelper;
+import com.liyunlong.appmanage.utils.PermissionHelper;
 import com.liyunlong.appmanage.utils.SearchViewHelper;
 import com.liyunlong.appmanage.utils.Utility;
 import com.liyunlong.appmanage.widget.LoadingDialog;
@@ -50,6 +53,7 @@ import java.util.concurrent.Executors;
 
 public class MainActivity extends FragmentActivity implements OnInstallStateChangedListener, OnAppInfoReadyListener, View.OnClickListener {
 
+    private static final int REQUEST_CODE_USAGE = 100;
     private static final String SP_NAME = "appmanage_prefs";
     private static final String CURRENT_WHICH = "current_Which";
     private static final String[] TITLES = {"所有", "系统", "用户"};
@@ -77,7 +81,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(false);
         }
-        final ViewPager mViewPager = (ViewPager) findViewById(R.id.viewPager);
+        final ViewPager mViewPager = findViewById(R.id.viewPager);
         int length = TITLES.length;
         final List<String> titles = Arrays.asList(TITLES);
         fragments = new ArrayList<>(length);
@@ -87,7 +91,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
         mViewPager.setOffscreenPageLimit(length);
         mViewPager.setAdapter(new FragmentAdapter(getSupportFragmentManager(), titles, fragments));
 
-        MagicIndicator magicIndicator = (MagicIndicator) findViewById(R.id.magicindicator);
+        MagicIndicator magicIndicator = findViewById(R.id.magicindicator);
         CommonNavigator commonNavigator = NavigatorHelper.getCommonNavigator(this, mViewPager, titles);
         magicIndicator.setNavigator(commonNavigator);
         magicIndicator.setupWithViewPager(mViewPager);
@@ -96,7 +100,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
         initSearchView();
         registerReceiver();
         loadAppManageInfo();
-
+        checkUsagePermission();
     }
 
     private void initSearchView() {
@@ -148,6 +152,28 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
         intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         intentFilter.addDataScheme("package");
         registerReceiver(receiver, intentFilter);
+    }
+
+    private boolean checkUsagePermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !PermissionHelper.checkUsagePermission(this)) {
+            new MaterialDialog.Builder(this)
+                    .setTitle("温馨提示")
+                    .setCancelable(true)
+                    .setCanceledOnTouchOutside(false)
+                    .setMessage("允许" + Utility.getAppName(this) + "访问设备上其他应用的信息？")
+                    .setNegativeButton("取消", null)
+                    .setPositiveButton("允许", new MaterialDialog.OnClickListener() {
+                        @Override
+                        public boolean onClick(DialogInterface dialog, int which) {
+                            PermissionHelper.openUsagePermissionSetting(MainActivity.this, REQUEST_CODE_USAGE);
+                            return false;
+                        }
+                    })
+                    .create()
+                    .show();
+            return false;
+        }
+        return true;
     }
 
     private void loadAppManageInfo() {
@@ -292,10 +318,24 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
             showSortMenuDialog();
             return true;
         } else if (item.getItemId() == R.id.action_refresh) {
-            loadAppManageInfo();
+            if (checkUsagePermission()) {
+                loadAppManageInfo();
+            }
             return true;
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_USAGE) {
+            if (PermissionHelper.checkUsagePermission(this)) {
+                loadAppManageInfo();
+            } else {
+                Toast.makeText(this, "访问设备上其他应用的信息需要该权限", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 
     @Override

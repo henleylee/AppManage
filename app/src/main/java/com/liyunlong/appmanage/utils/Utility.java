@@ -3,12 +3,23 @@ package com.liyunlong.appmanage.utils;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.content.pm.ApplicationInfo;
 
 /**
+ * 工具类
+ *
  * @author liyunlong
  * @date 2017/4/18 18:41
  */
 public class Utility {
+
+    /**
+     * 获取应用程序名称
+     */
+    public static String getAppName(Context context) {
+        ApplicationInfo applicationInfo = context.getApplicationInfo();
+        return context.getResources().getString(applicationInfo.labelRes);
+    }
 
     /**
      * 将文字复制到剪切板
