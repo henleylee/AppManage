@@ -1,5 +1,8 @@
 apply plugin: 'com.android.application'
 
+def appName = "AppManage" // APP名称
+def releaseTime = new Date().format("yyyy-MM-dd") // 打包时间
+
 android {
     compileSdkVersion 28
     buildToolsVersion "28.0.3"
@@ -33,27 +36,17 @@ android {
         }
     }
     applicationVariants.all { variant -> // 打包配置
-        variant.outputs.each { output ->
-            def outputFile = output.outputFile
-            if (outputFile != null && outputFile.name.endsWith('.apk')) {
-                def fileName = "${appName()}_v${defaultConfig.versionName}_${releaseTime()}.apk"
-//                output.outputFile = new File(outputFile.parent, fileName)
+        variant.outputs.all { out ->
+            def outputFile = out.outputFile
+            if (outputFile.name.endsWith('.apk') && !variant.buildType.debuggable) {
+                outputFileName = "${appName}_v${defaultConfig.versionName}_${releaseTime}.apk"
             }
         }
     }
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:support-fragment:28.0.0'
-    compile 'com.android.design:MaterialDialog:1.1.5'
-}
-
-
-static def appName() { // APP名称
-    return "AppManage"
-}
-
-static def releaseTime() { // 打包时间
-    return new Date().format("yyyy-MM-dd")
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation 'com.android.support:support-fragment:28.0.0'
+    implementation 'com.android.design:MaterialDialog:1.1.5'
 }

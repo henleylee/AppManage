@@ -54,8 +54,8 @@ import java.util.concurrent.Executors;
 public class MainActivity extends FragmentActivity implements OnInstallStateChangedListener, OnAppInfoReadyListener, View.OnClickListener {
 
     private static final int REQUEST_CODE_USAGE = 100;
-    private static final String SP_NAME = "appmanage_prefs";
-    private static final String CURRENT_WHICH = "current_Which";
+    private static final String SP_NAME = "config_prefs";
+    private static final String SORT_WHICH = "sort_which";
     private static final String[] TITLES = {"所有", "系统", "用户"};
     private static final String[] SORT_MENU_ITEMS = new String[]{"按名称升序", "按名称降序", "按大小升序", "按大小降序"};
     private ExecutorService mExecutorService;
@@ -207,7 +207,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
             fragments.get(0).updateAppInfo(appManageInfo.getAllAppList());
             fragments.get(1).updateAppInfo(appManageInfo.getSystemAppList());
             fragments.get(2).updateAppInfo(appManageInfo.getUserAppList());
-            curWhich = mPreferences.getInt(CURRENT_WHICH, 0);
+            curWhich = mPreferences.getInt(SORT_WHICH, 0);
             startSortAppInfo();
         }
     }
@@ -232,7 +232,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
                         if (curWhich != tempWhich) {
                             curWhich = tempWhich;
                             mPreferences.edit()
-                                    .putInt(CURRENT_WHICH, curWhich)
+                                    .putInt(SORT_WHICH, curWhich)
                                     .apply();
                             startSortAppInfo();
                         }
