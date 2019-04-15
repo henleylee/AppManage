@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical">
 
-    <com.liyunlong.appmanage.widget.indicator.MagicIndicator
+    <com.henley.appmanage.widget.indicator.MagicIndicator
         android:id="@+id/magicindicator"
         android:layout_width="match_parent"
         android:layout_height="48dp" />

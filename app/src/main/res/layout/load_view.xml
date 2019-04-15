@@ -25,7 +25,7 @@
         android:textSize="14sp"
         android:visibility="gone" />
 
-    <com.liyunlong.appmanage.widget.shapeloading.ShapeView
+    <com.henley.appmanage.widget.shapeloading.ShapeView
         android:id="@+id/shapeLoadingView"
         android:layout_width="25dp"
         android:layout_height="25dp"
