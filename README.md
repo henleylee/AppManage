@@ -3,7 +3,7 @@
 
 ## 下载 ##
 
-下载 [AppManage](https://github.com/HenleyLee/AppManage/raw/master/app/AppManage_v3.0.apk)
+[AppManage](./AppManage_v3.0.apk)
 
 ## 效果演示 ##
 #### 设备上的所有应用程序分为所有、系统、用户三类： ####

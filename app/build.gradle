@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 
 def appName = "AppManage" // APP名称
-def releaseTime = new Date().format("yyyy-MM-dd") // 打包时间
 
 android {
     compileSdkVersion 28
@@ -38,11 +37,20 @@ android {
         }
     }
 
-    applicationVariants.all { variant -> // 打包配置
-        variant.outputs.all { out ->
-            def outputFile = out.outputFile
-            if (outputFile.name.endsWith('.apk') && !variant.buildType.debuggable) {
-                outputFileName = "${appName}_v${defaultConfig.versionName}_${releaseTime}.apk"
+    android.applicationVariants.all { variant ->
+        variant.outputs.all { output ->
+            if (!variant.buildType.debuggable) {
+                output.assemble.doLast {
+                    copy {
+                        def targetName = "${appName}-${variant.versionName}.apk"
+                        from output.outputFile
+                        into project.rootDir
+                        rename { String fileName ->
+                            fileName.replace("app-release.apk", targetName)
+                        }
+                        System.out.println("generate ${targetName} success in dir ${new File(project.rootDir, targetName)}.")
+                    }
+                }
             }
         }
     }
