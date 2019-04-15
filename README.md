@@ -2,7 +2,8 @@
 可以查询应用名称、版本、存储空间、包名、签名，支持分类、刷新、排序、搜索
 
 ## 下载 ##
-[AppManage](./AppManage_v2.0.apk)
+
+下载 [AppManage](https://github.com/HenleyLee/AppManage/raw/master/app/AppManage_v3.0.apk)
 
 ## 效果演示 ##
 #### 设备上的所有应用程序分为所有、系统、用户三类： ####
