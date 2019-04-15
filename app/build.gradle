@@ -42,7 +42,7 @@ android {
             if (!variant.buildType.debuggable) {
                 output.assemble.doLast {
                     copy {
-                        def targetName = "${appName}-${variant.versionName}.apk"
+                        def targetName = "${appName}-v${variant.versionName}.apk"
                         from output.outputFile
                         into project.rootDir
                         rename { String fileName ->
