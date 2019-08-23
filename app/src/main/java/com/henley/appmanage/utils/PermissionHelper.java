@@ -1,5 +1,6 @@
 package com.henley.appmanage.utils;
 
+import android.Manifest;
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AppOpsManager;
@@ -7,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Process;
 import android.provider.Settings;
 import android.support.annotation.RequiresApi;
 
@@ -26,9 +28,9 @@ public class PermissionHelper {
         boolean granted = false;
         AppOpsManager opsManager = (AppOpsManager) activity.getSystemService(Context.APP_OPS_SERVICE);
         if (opsManager != null) {
-            int mode = opsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), activity.getPackageName());
+            int mode = opsManager.checkOpNoThrow(AppOpsManager.OPSTR_GET_USAGE_STATS, Process.myUid(), activity.getPackageName());
             if (mode == AppOpsManager.MODE_DEFAULT) {
-                granted = activity.checkCallingOrSelfPermission(android.Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED;
+                granted = activity.checkSelfPermission(Manifest.permission.PACKAGE_USAGE_STATS) == PackageManager.PERMISSION_GRANTED;
             } else {
                 granted = mode == AppOpsManager.MODE_ALLOWED;
             }

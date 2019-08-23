@@ -11,7 +11,7 @@ import android.graphics.drawable.Drawable;
 public class AppInfo {
 
     private Drawable appIcon;
-    private String appLabel;
+    private String appName;
     private long cacheSize;
     private long codeSize;
     private long dataSize;
@@ -33,12 +33,12 @@ public class AppInfo {
         this.appIcon = appIcon;
     }
 
-    public String getAppLabel() {
-        return appLabel;
+    public String getAppName() {
+        return appName;
     }
 
-    public void setAppLabel(String appLabel) {
-        this.appLabel = appLabel;
+    public void setAppName(String appName) {
+        this.appName = appName;
     }
 
     public long getCacheSize() {

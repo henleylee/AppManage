@@ -20,7 +20,7 @@ public class ComparatorByName implements Comparator<AppInfo> {
 
     @Override
     public int compare(AppInfo o1, AppInfo o2) {
-        int result = o1.getAppLabel().compareTo(o2.getAppLabel());
+        int result = o1.getAppName().compareTo(o2.getAppName());
         if (descOrder) {
             result = 0 - result;
         }

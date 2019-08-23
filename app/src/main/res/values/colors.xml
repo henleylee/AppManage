@@ -5,8 +5,10 @@
     <color name="colorAccent">#FF4081</color>
 
     <!-- Button正常状态下的背景颜色 -->
-    <color name="button_normal">#f35638</color>
+    <color name="button_normal">#F35638</color>
     <!-- Button按下状态下的背景颜色 -->
-    <color name="button_pressed">#dd4c31</color>
+    <color name="button_pressed">#DD4C31</color>
+
+    <color name="divider_color">#DDDDDD</color>
 
 </resources>

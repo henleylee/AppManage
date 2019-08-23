@@ -8,8 +8,8 @@ android {
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion 28
-        versionCode 3
-        versionName "3.0"
+        versionCode 4
+        versionName "3.1"
         applicationId "com.henley.appmanage"
     }
 
@@ -24,6 +24,7 @@ android {
 
     buildTypes {
         release {
+            useProguard true
             minifyEnabled true // 是否进行代码混淆
             zipAlignEnabled true // 是否进行Zip压缩优化
             shrinkResources true // 是否移除无用的resource文件
@@ -40,7 +41,7 @@ android {
     android.applicationVariants.all { variant ->
         variant.outputs.all { output ->
             if (!variant.buildType.debuggable) {
-                output.assemble.doLast {
+                variant.assembleProvider.get().doLast {
                     copy {
                         def targetName = "${appName}-v${variant.versionName}.apk"
                         from output.outputFile
@@ -58,6 +59,5 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:support-fragment:28.0.0'
-    implementation 'com.android.design:MaterialDialog:1.1.5'
+    implementation 'com.android.support:appcompat-v7:28.0.0'
 }

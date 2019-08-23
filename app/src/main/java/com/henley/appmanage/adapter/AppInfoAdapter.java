@@ -66,7 +66,7 @@ public class AppInfoAdapter extends BaseAdapter {
             if (mContext == null) {
                 mContext = parent.getContext();
             }
-            convertView = LayoutInflater.from(mContext).inflate(R.layout.item_layout_appinfo, parent, false);
+            convertView = LayoutInflater.from(mContext).inflate(R.layout.layout_item_appinfo, parent, false);
             holder = new AppInfoViewHolder(convertView);
             convertView.setTag(holder);
         } else {
@@ -78,7 +78,7 @@ public class AppInfoAdapter extends BaseAdapter {
             if (!TextUtils.isEmpty(versionName) && versionName.contains("-")) {
                 appInfo.setVersionName(versionName.substring(0, versionName.indexOf("-")));
             }
-            final String appLable = appInfo.getAppLabel();
+            final String appLable = appInfo.getAppName();
             final String appVersion = formatString("版本: %s(版本号: %d)", appInfo.getVersionName(), appInfo.getVersionCode());
             final String pkgName = formatString("包名: %s", appInfo.getPackageName());
             final String signatures = formatString("签名: %s", appInfo.getSignatureMD5());

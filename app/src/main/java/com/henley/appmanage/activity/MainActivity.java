@@ -10,11 +10,11 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
-import android.support.v4.app.FragmentActivity;
 import android.support.v4.view.ViewPager;
+import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.text.Editable;
 import android.text.TextUtils;
-import android.text.TextWatcher;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,14 +23,12 @@ import android.widget.FrameLayout;
 import android.widget.ListView;
 import android.widget.Toast;
 
-import com.common.design.MaterialDialog;
 import com.henley.appmanage.R;
 import com.henley.appmanage.adapter.AppInfoAdapter;
 import com.henley.appmanage.adapter.FragmentAdapter;
 import com.henley.appmanage.data.AppInfo;
 import com.henley.appmanage.data.AppInfoManage;
 import com.henley.appmanage.fragment.AppInfoFragment;
-import com.henley.appmanage.listener.OnAppInfoReadyListener;
 import com.henley.appmanage.listener.OnInstallStateChangedListener;
 import com.henley.appmanage.receiver.InstallStateChangedReceiver;
 import com.henley.appmanage.utils.AppManageHelper;
@@ -41,6 +39,7 @@ import com.henley.appmanage.utils.PermissionHelper;
 import com.henley.appmanage.utils.SearchViewHelper;
 import com.henley.appmanage.utils.Utility;
 import com.henley.appmanage.widget.LoadingDialog;
+import com.henley.appmanage.widget.SimpleTextWatcher;
 import com.henley.appmanage.widget.indicator.CommonNavigator;
 import com.henley.appmanage.widget.indicator.MagicIndicator;
 
@@ -51,7 +50,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-public class MainActivity extends FragmentActivity implements OnInstallStateChangedListener, OnAppInfoReadyListener, View.OnClickListener {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private static final int REQUEST_CODE_USAGE = 100;
     private static final String SP_NAME = "config_prefs";
@@ -62,7 +61,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
     private AppInfoManage appInfoManage;
     private List<AppInfoFragment> fragments;
     private Dialog mProgressDialog;
-    private InstallStateChangedReceiver receiver;
+    private InstallStateChangedReceiver mReceiver;
     private SharedPreferences mPreferences;
     private int curWhich;
     private int tempWhich;
@@ -81,22 +80,26 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
             actionBar.setDisplayShowHomeEnabled(false);
             actionBar.setDisplayHomeAsUpEnabled(false);
         }
-        final ViewPager mViewPager = findViewById(R.id.viewPager);
+
         int length = TITLES.length;
         final List<String> titles = Arrays.asList(TITLES);
+
+        final ViewPager viewPager = findViewById(R.id.view_pager);
         fragments = new ArrayList<>(length);
         for (int index = 0; index < length; index++) {
             fragments.add(new AppInfoFragment());
         }
-        mViewPager.setOffscreenPageLimit(length);
-        mViewPager.setAdapter(new FragmentAdapter(getSupportFragmentManager(), titles, fragments));
+        viewPager.setOffscreenPageLimit(length);
+        viewPager.setAdapter(new FragmentAdapter(getSupportFragmentManager(), titles, fragments));
 
-        MagicIndicator magicIndicator = findViewById(R.id.magicindicator);
-        CommonNavigator commonNavigator = NavigatorHelper.getCommonNavigator(this, mViewPager, titles);
+        MagicIndicator magicIndicator = findViewById(R.id.magic_indicator);
+        CommonNavigator commonNavigator = NavigatorHelper.getCommonNavigator(this, viewPager, titles);
         magicIndicator.setNavigator(commonNavigator);
-        magicIndicator.setupWithViewPager(mViewPager);
+        magicIndicator.setupWithViewPager(viewPager);
+
         mPreferences = getSharedPreferences(SP_NAME, Context.MODE_PRIVATE);
         mProgressDialog = new LoadingDialog(this);
+
         initSearchView();
         registerReceiver();
         loadAppManageInfo();
@@ -105,7 +108,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
 
     private void initSearchView() {
         FrameLayout contentView = (FrameLayout) getWindow().getDecorView();
-        searchView = getLayoutInflater().inflate(R.layout.layout_appinfo_search, null);
+        searchView = getLayoutInflater().inflate(R.layout.layout_search_appinfo, contentView, false);
         contentView.addView(searchView);
         int statusBarHeight = Utility.getStatusBarHeight(this);
         FrameLayout.LayoutParams layoutParams = (FrameLayout.LayoutParams) searchView.getLayoutParams();
@@ -117,18 +120,8 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
         ivClean.setVisibility(View.GONE);
         ivClean.setOnClickListener(this);
         searchView.findViewById(R.id.search_back).setOnClickListener(this);
-        searchView.findViewById(R.id.search_cancle).setOnClickListener(this);
-        edtSeatch.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {
-
-            }
-
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-
-            }
-
+        searchView.findViewById(R.id.search_cancel).setOnClickListener(this);
+        edtSeatch.addTextChangedListener(new SimpleTextWatcher() {
             @Override
             public void afterTextChanged(Editable s) {
                 if (!TextUtils.isEmpty(s)) {
@@ -143,34 +136,54 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
         listSearch = searchView.findViewById(R.id.search_listview);
     }
 
-
     private void registerReceiver() {
-        receiver = new InstallStateChangedReceiver(this);
+        mReceiver = new InstallStateChangedReceiver(new OnInstallStateChangedListener() {
+            @Override
+            public void onPackageAdded(String action, String packageName) {
+                AppInfo appInfo = appManageHelper.getAppInfo(packageName);
+                appInfoManage.putMapAppInfo(appInfo);
+                appInfoManage.addAllAppInfo(appInfo);
+                appInfoManage.addUserAppInfo(appInfo);
+                updateAppManageInfo();
+            }
+
+            @Override
+            public void onPackageReplaced(String action, String packageName) {
+
+            }
+
+            @Override
+            public void onPackageRemoved(String action, String packageName) {
+                AppInfo appInfo = appInfoManage.removeMapAppInfo(packageName);
+                appInfoManage.removeAllAppInfo(appInfo);
+                appInfoManage.removeUserAppInfo(appInfo);
+                updateAppManageInfo();
+            }
+        });
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(Intent.ACTION_PACKAGE_ADDED);
         intentFilter.addAction(Intent.ACTION_PACKAGE_REPLACED);
         intentFilter.addAction(Intent.ACTION_PACKAGE_REMOVED);
         intentFilter.addDataScheme("package");
-        registerReceiver(receiver, intentFilter);
+        registerReceiver(mReceiver, intentFilter);
     }
 
     private boolean checkUsagePermission() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && !PermissionHelper.checkUsagePermission(this)) {
-            new MaterialDialog.Builder(this)
+            AlertDialog dialog = new AlertDialog.Builder(this)
                     .setTitle("温馨提示")
-                    .setCancelable(true)
-                    .setCanceledOnTouchOutside(false)
                     .setMessage("允许" + Utility.getAppName(this) + "访问设备上其他应用的信息？")
                     .setNegativeButton("取消", null)
-                    .setPositiveButton("允许", new MaterialDialog.OnClickListener() {
+                    .setPositiveButton("允许", new DialogInterface.OnClickListener() {
                         @Override
-                        public boolean onClick(DialogInterface dialog, int which) {
+                        public void onClick(DialogInterface dialog, int which) {
                             PermissionHelper.openUsagePermissionSetting(MainActivity.this, REQUEST_CODE_USAGE);
-                            return false;
                         }
                     })
-                    .create()
-                    .show();
+                    .create();
+            dialog.setCancelable(true);
+            dialog.setCanceledOnTouchOutside(false);
+            dialog.show();
             return false;
         }
         return true;
@@ -178,13 +191,13 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
 
     private void loadAppManageInfo() {
         if (mExecutorService == null) {
-            mExecutorService = Executors.newCachedThreadPool();
+            mExecutorService = Executors.newSingleThreadExecutor();
         }
         if (appManageHelper == null) {
             appManageHelper = new AppManageHelper(this);
-            appManageHelper.setOnReadyListener(this);
         }
         mProgressDialog.show();
+        final long timeMillis = System.currentTimeMillis();
         mExecutorService.submit(new Runnable() {
             @Override
             public void run() {
@@ -192,6 +205,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
                 runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
+                        Toast.makeText(MainActivity.this, "耗时：" + (System.currentTimeMillis() - timeMillis) + "ms", Toast.LENGTH_SHORT).show();
                         updateAppManageInfo();
                     }
                 });
@@ -214,21 +228,18 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
 
     private void showSortMenuDialog() {
         tempWhich = curWhich;
-        new MaterialDialog.Builder(this)
+        AlertDialog dialog = new AlertDialog.Builder(this)
                 .setTitle("排序")
-                .setCancelable(true)
-                .setCanceledOnTouchOutside(false)
-                .setSingleChoiceItems(SORT_MENU_ITEMS, curWhich, new MaterialDialog.OnClickListener() {
+                .setSingleChoiceItems(SORT_MENU_ITEMS, curWhich, new DialogInterface.OnClickListener() {
                     @Override
-                    public boolean onClick(DialogInterface dialog, int which) {
+                    public void onClick(DialogInterface dialog, int which) {
                         tempWhich = which;
-                        return true; // 默认返回false(返回true则Dialog不消失，返回false则Dialog消失)
                     }
                 })
                 .setNegativeButton("取消", null)
-                .setPositiveButton("确定", new MaterialDialog.OnClickListener() {
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
                     @Override
-                    public boolean onClick(DialogInterface dialog, int which) {
+                    public void onClick(DialogInterface dialog, int which) {
                         if (curWhich != tempWhich) {
                             curWhich = tempWhich;
                             mPreferences.edit()
@@ -236,11 +247,12 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
                                     .apply();
                             startSortAppInfo();
                         }
-                        return false;
                     }
                 })
-                .create()
-                .show();
+                .create();
+        dialog.setCancelable(true);
+        dialog.setCanceledOnTouchOutside(false);
+        dialog.show();
     }
 
     private void startSortAppInfo() {
@@ -264,42 +276,6 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
                 }
             }
         }
-    }
-
-    @Override
-    public void onAppInfoReady() {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                if (fragments != null && !fragments.isEmpty()) {
-                    for (AppInfoFragment fragment : fragments) {
-                        fragment.notifyDataSetChanged();
-                    }
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onPackageAdded(String action, String packageName) {
-        AppInfo appInfo = appManageHelper.getAppInfo(packageName);
-        appInfoManage.putMapAppInfo(appInfo);
-        appInfoManage.addAllAppInfo(appInfo);
-        appInfoManage.addUserAppInfo(appInfo);
-        updateAppManageInfo();
-    }
-
-    @Override
-    public void onPackageReplaced(String action, String packageName) {
-
-    }
-
-    @Override
-    public void onPackageRemoved(String action, String packageName) {
-        AppInfo appInfo = appInfoManage.removeMapAppInfo(packageName);
-        appInfoManage.removeAllAppInfo(appInfo);
-        appInfoManage.removeUserAppInfo(appInfo);
-        updateAppManageInfo();
     }
 
     @Override
@@ -341,8 +317,8 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (receiver != null) {
-            unregisterReceiver(receiver);
+        if (mReceiver != null) {
+            unregisterReceiver(mReceiver);
         }
     }
 
@@ -351,7 +327,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
             List<AppInfo> resultList = new ArrayList<>();
             List<AppInfo> sourceList = appInfoManage.getAllAppList();
             for (AppInfo appInfo : sourceList) {
-                if (appInfo.getAppLabel().contains(text) || appInfo.getPackageName().contains(text)) {
+                if (appInfo.getAppName().contains(text) || appInfo.getPackageName().contains(text)) {
                     resultList.add(appInfo);
                 }
             }
@@ -388,7 +364,7 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.search_back:
-            case R.id.search_cancle:
+            case R.id.search_cancel:
                 handleSearchViewState();
                 break;
             case R.id.search_clean:
@@ -414,4 +390,5 @@ public class MainActivity extends FragmentActivity implements OnInstallStateChan
             super.onBackPressed();
         }
     }
+
 }

@@ -9,18 +9,16 @@ import android.content.pm.IPackageStatsObserver;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.PackageStats;
+import android.content.pm.Signature;
 import android.os.Build;
-import android.os.RemoteException;
 import android.os.storage.StorageManager;
 import android.support.annotation.NonNull;
 
 import com.henley.appmanage.data.AppInfo;
 import com.henley.appmanage.data.AppInfoManage;
-import com.henley.appmanage.listener.OnAppInfoReadyListener;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.security.NoSuchAlgorithmException;
 import java.util.List;
 import java.util.UUID;
 
@@ -33,83 +31,67 @@ import java.util.UUID;
 public class AppManageHelper {
 
     private static final String METHOD_NAME_GETPACKAGESIZEINFO = "getPackageSizeInfo";
-    private int totalCount = 0;
-    private int readyCount = 0;
     private Context context;
     private PackageManager packageManager;
     private StorageManager storageManager;
     private StorageStatsManager storageStatsManager;
-    private OnAppInfoReadyListener mListener;
 
     public AppManageHelper(Context context) {
         this.context = context;
         this.packageManager = context.getPackageManager();
     }
 
-    public void setOnReadyListener(OnAppInfoReadyListener listener) {
-        this.mListener = listener;
-    }
-
     public AppInfoManage getAppManageInfo() {
-        try {
-            totalCount = 0;
-            readyCount = 0;
-            List<PackageInfo> packageInfoList = packageManager.getInstalledPackages(PackageManager.GET_SIGNATURES);
-            if (packageInfoList == null || packageInfoList.isEmpty()) {
-                return null;
-            }
-            AppInfoManage appInfoManage = new AppInfoManage();
-            for (PackageInfo packageInfo : packageInfoList) {
-                AppInfo appInfo = getAppInfo(packageInfo);
-                if (appInfo.isSystemApp()) {
-                    appInfo.setIsSystemApp(true);
-                    appInfoManage.addSystemAppInfo(appInfo);
-                } else {
-                    appInfo.setIsSystemApp(false);
-                    appInfoManage.addUserAppInfo(appInfo);
-                }
-                appInfoManage.addAllAppInfo(appInfo);
-                appInfoManage.putMapAppInfo(appInfo);
-            }
-            return appInfoManage;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        } catch (NoSuchAlgorithmException e) {
-            e.printStackTrace();
+        List<PackageInfo> packageInfos = packageManager.getInstalledPackages(PackageManager.GET_SIGNATURES);
+        if (packageInfos == null || packageInfos.isEmpty()) {
+            return null;
         }
-        return null;
+        AppInfoManage appInfoManage = new AppInfoManage();
+        for (PackageInfo packageInfo : packageInfos) {
+            AppInfo appInfo = getAppInfo(packageInfo);
+            if (appInfo.isSystemApp()) {
+                appInfo.setIsSystemApp(true);
+                appInfoManage.addSystemAppInfo(appInfo);
+            } else {
+                appInfo.setIsSystemApp(false);
+                appInfoManage.addUserAppInfo(appInfo);
+            }
+            appInfoManage.addAllAppInfo(appInfo);
+            appInfoManage.putMapAppInfo(appInfo);
+        }
+        return appInfoManage;
     }
 
     public AppInfo getAppInfo(String packageName) {
         try {
-            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_SIGNATURES);
+            PackageInfo packageInfo = packageManager.getPackageInfo(packageName, PackageManager.GET_UNINSTALLED_PACKAGES);
             return getAppInfo(packageInfo);
-        } catch (PackageManager.NameNotFoundException | NoSuchAlgorithmException e) {
+        } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
         return null;
     }
 
     @NonNull
-    private AppInfo getAppInfo(PackageInfo packageInfo) throws PackageManager.NameNotFoundException, NoSuchAlgorithmException {
-        totalCount++;
+    private AppInfo getAppInfo(PackageInfo packageInfo) {
         AppInfo appInfo = new AppInfo();
         ApplicationInfo applicationInfo = packageInfo.applicationInfo;
         appInfo.setPackageName(applicationInfo.packageName);
         appInfo.setLocation(applicationInfo.sourceDir);
         appInfo.setAppIcon(applicationInfo.loadIcon(packageManager));
-        appInfo.setAppLabel((String) applicationInfo.loadLabel(packageManager));
+        appInfo.setAppName((String) applicationInfo.loadLabel(packageManager));
         appInfo.setVersionCode(packageInfo.versionCode);
         appInfo.setVersionName(packageInfo.versionName);
         appInfo.setIsSystemApp(isSystemApp(applicationInfo));
-        if (packageInfo.signatures.length > 0) {
-            byte[] signBytes = packageInfo.signatures[0].toByteArray();
+        Signature[] signatures = packageInfo.signatures;
+        if (signatures.length > 0) {
+            byte[] signBytes = signatures[0].toByteArray();
             appInfo.setSignatureMD5(DigestHelper.encodeMD5Hex(signBytes));
             appInfo.setSignatureSHA1(DigestHelper.encodeSHAHex(signBytes));
             appInfo.setSignatureSHA256(DigestHelper.encodeSHA256Hex(signBytes));
         }
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            getAppTotalsizeO(packageInfo, appInfo);
+            getAppTotalSizeO(packageInfo, appInfo);
         } else {
             queryPacakgeSize(appInfo.getPackageName(), new PackageStatsObserver(appInfo));
         }
@@ -143,7 +125,7 @@ public class AppManageHelper {
      * @param appInfo
      */
     @TargetApi(Build.VERSION_CODES.O)
-    private void getAppTotalsizeO(PackageInfo packageInfo, AppInfo appInfo) {
+    private void getAppTotalSizeO(PackageInfo packageInfo, AppInfo appInfo) {
         try {
             if (storageManager == null) {
                 storageManager = (StorageManager) context.getSystemService(Context.STORAGE_SERVICE);
@@ -160,9 +142,6 @@ public class AppManageHelper {
             appInfo.setCacheSize(storageStats.getCacheBytes()); // 缓存大小
             long totalSizeBytes = storageStats.getAppBytes() + storageStats.getDataBytes() + storageStats.getCacheBytes();
             appInfo.setTotalSize(totalSizeBytes); // 总大小
-            if (readyCount == totalCount && mListener != null) {
-                mListener.onAppInfoReady();
-            }
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -182,9 +161,8 @@ public class AppManageHelper {
         }
 
         @Override
-        public void onGetStatsCompleted(PackageStats packageStats, boolean succeeded) throws RemoteException {
+        public void onGetStatsCompleted(PackageStats packageStats, boolean succeeded) {
             if (appInfo != null) {
-                readyCount++;
                 appInfo.setCodeSize(packageStats.codeSize + packageStats.externalCodeSize); // 应用程序大小
                 appInfo.setDataSize(packageStats.dataSize + packageStats.externalDataSize); // 数据大小
                 appInfo.setCacheSize(packageStats.cacheSize + packageStats.externalCacheSize); // 缓存大小
@@ -192,9 +170,6 @@ public class AppManageHelper {
                         + packageStats.dataSize + packageStats.externalDataSize
                         + packageStats.cacheSize + packageStats.externalCacheSize;
                 appInfo.setTotalSize(totalSizeBytes); // 总大小
-                if (readyCount == totalCount && mListener != null) {
-                    mListener.onAppInfoReady();
-                }
             }
         }
     }
