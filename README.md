@@ -3,7 +3,7 @@
 
 ## 下载 ##
 
-[AppManage](./AppManage-v3.0.apk)
+[AppManage](./AppManage-v3.2.apk)
 
 ## 效果演示 ##
 #### 设备上的所有应用程序分为所有、系统、用户三类： ####
