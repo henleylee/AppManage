@@ -2,11 +2,12 @@ package com.henley.appmanage.utils;
 
 import android.content.Context;
 import android.graphics.Color;
-import android.support.annotation.NonNull;
-import android.support.v4.view.ViewPager;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+
+import androidx.annotation.NonNull;
+import androidx.viewpager.widget.ViewPager;
 
 import com.henley.appmanage.widget.indicator.CommonNavigator;
 import com.henley.appmanage.widget.indicator.CommonNavigatorAdapter;

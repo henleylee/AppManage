@@ -12,7 +12,8 @@ import android.content.pm.PackageStats;
 import android.content.pm.Signature;
 import android.os.Build;
 import android.os.storage.StorageManager;
-import android.support.annotation.NonNull;
+
+import androidx.annotation.NonNull;
 
 import com.henley.appmanage.data.AppInfo;
 import com.henley.appmanage.data.AppInfoManage;

@@ -1,6 +1,6 @@
 package com.henley.appmanage.widget.indicator;
 
-import android.support.v4.view.ViewPager;
+import androidx.viewpager.widget.ViewPager;
 import android.util.SparseArray;
 import android.util.SparseBooleanArray;
 
